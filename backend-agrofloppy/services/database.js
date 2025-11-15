@@ -2,20 +2,82 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const config = require('../config');
 
+let userTableColumns = new Set();
+
+function runAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ lastID: this.lastID, changes: this.changes });
+      }
+    });
+  });
+}
+
+function allAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+}
+
 // Conectar a base de datos
-const db = new sqlite3.Database(config.DATABASE.FILE, (err) => {
+const db = new sqlite3.Database(config.DATABASE.FILE, async (err) => {
   if (err) {
     console.error('Error conectando a base de datos:', err);
   } else {
     console.log('✅ Conectado a base de datos SQLite');
-    initializeDatabase();
+    try {
+      await initializeDatabase();
+    } catch (initError) {
+      console.error('Error inicializando base de datos:', initError);
+    }
   }
 });
 
+async function ensureUserSchema() {
+  try {
+    const columns = await allAsync('PRAGMA table_info(users)');
+    userTableColumns = new Set(columns.map(column => column.name));
+
+    if (!userTableColumns.has('password_hash')) {
+      await runAsync('ALTER TABLE users ADD COLUMN password_hash TEXT');
+      console.log('✅ Columna password_hash agregada a tabla users');
+      userTableColumns.add('password_hash');
+    }
+
+    if (!userTableColumns.has('updated_at')) {
+      await runAsync('ALTER TABLE users ADD COLUMN updated_at DATETIME');
+      console.log('✅ Columna updated_at agregada a tabla users');
+      userTableColumns.add('updated_at');
+      await runAsync('UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL');
+    }
+
+    if (userTableColumns.has('password')) {
+      const { changes } = await runAsync(
+        'UPDATE users SET password_hash = password WHERE (password_hash IS NULL OR password_hash = "") AND password IS NOT NULL'
+      );
+
+      if (changes > 0) {
+        console.log(`🔄 Migradas ${changes} contraseñas existentes a password_hash`);
+      }
+    }
+  } catch (error) {
+    console.error('Error asegurando esquema de usuarios:', error);
+  }
+}
+
 // Inicializar base de datos
-function initializeDatabase() {
+async function initializeDatabase() {
   // Crear tabla de usuarios
-  db.run(`
+  await runAsync(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -25,17 +87,14 @@ function initializeDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
-  `, (err) => {
-    if (err) {
-      console.error('Error creando tabla users:', err);
-    } else {
-      console.log('✅ Tabla users creada/verificada');
-      createDefaultUsers();
-    }
-  });
+  `);
+  console.log('✅ Tabla users creada/verificada');
+
+  await ensureUserSchema();
+  await createDefaultUsers();
 
   // Crear tabla de sensores
-  db.run(`
+  await runAsync(`
     CREATE TABLE IF NOT EXISTS sensor_data (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       soil_moisture REAL,
@@ -46,16 +105,11 @@ function initializeDatabase() {
       pump_mode TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
-  `, (err) => {
-    if (err) {
-      console.error('Error creando tabla sensor_data:', err);
-    } else {
-      console.log('✅ Tabla sensor_data creada/verificada');
-    }
-  });
+  `);
+  console.log('✅ Tabla sensor_data creada/verificada');
 
   // Crear tabla de comandos
-  db.run(`
+  await runAsync(`
     CREATE TABLE IF NOT EXISTS commands (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       command_type TEXT NOT NULL,
@@ -63,13 +117,8 @@ function initializeDatabase() {
       executed_by TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
-  `, (err) => {
-    if (err) {
-      console.error('Error creando tabla commands:', err);
-    } else {
-      console.log('✅ Tabla commands creada/verificada');
-    }
-  });
+  `);
+  console.log('✅ Tabla commands creada/verificada');
 }
 
 // Crear usuarios por defecto
@@ -132,10 +181,26 @@ function getAllUsers() {
 async function createUser(username, password, name, role = 'user') {
   const passwordHash = await bcrypt.hash(password, 10);
 
+  const columns = ['username', 'password_hash', 'name', 'role'];
+  const placeholders = ['?', '?', '?', '?'];
+  const values = [username, passwordHash, name, role];
+
+  if (userTableColumns.has('password')) {
+    columns.splice(1, 0, 'password');
+    placeholders.splice(1, 0, '?');
+    values.splice(1, 0, passwordHash);
+  }
+
+  if (userTableColumns.has('updated_at')) {
+    columns.push('updated_at');
+    placeholders.push('?');
+    values.push(new Date().toISOString());
+  }
+
   return new Promise((resolve, reject) => {
     db.run(
-      'INSERT INTO users (username, password_hash, name, role) VALUES (?, ?, ?, ?)',
-      [username, passwordHash, name, role],
+      `INSERT INTO users (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`,
+      values,
       function(err) {
         if (err) {
           reject(err);
@@ -184,11 +249,13 @@ function updateUser(id, updates) {
       values.push(updates.role);
     }
 
-    fields.push('updated_at = CURRENT_TIMESTAMP');
-
-    if (fields.length === 1) {
+    if (fields.length === 0) {
       reject(new Error('No hay campos para actualizar'));
       return;
+    }
+
+    if (userTableColumns.has('updated_at')) {
+      fields.push('updated_at = CURRENT_TIMESTAMP');
     }
 
     values.push(id);
