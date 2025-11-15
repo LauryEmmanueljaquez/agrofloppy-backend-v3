@@ -1,0 +1,17 @@
+{
+  "name": "agrofloppy-monorepo",
+  "version": "1.0.0",
+  "description": "Agro Floppy - Sistema de riego inteligente IoT",
+  "scripts": {
+    "start": "cd backend-agrofloppy && node server.js",
+    "dev": "cd backend-agrofloppy && nodemon server.js",
+    "install-backend": "cd backend-agrofloppy && npm install"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["iot", "riego", "agricultura", "mqtt", "esp32"],
+  "author": "Agro Floppy Team",
+  "license": "MIT"
+}
+

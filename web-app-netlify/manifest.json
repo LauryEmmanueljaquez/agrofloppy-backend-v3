@@ -1,0 +1,52 @@
+{
+  "name": "Agro Floppy - Sistema de Riego Inteligente",
+  "short_name": "Agro Floppy",
+  "description": "Sistema de monitoreo y control de riego inteligente con IoT",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "fotos/logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "fotos/logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["agriculture", "productivity", "utilities"],
+  "lang": "es",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Ver datos de sensores",
+      "url": "/dashboard-backend.html",
+      "icons": [{ "src": "fotos/logo.jpeg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Panel Admin",
+      "short_name": "Admin",
+      "description": "Panel de administración",
+      "url": "/admin.html",
+      "icons": [{ "src": "fotos/logo.jpeg", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data"
+  }
+}
+
+

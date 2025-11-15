@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Agro Floppy</title>
+    <link rel="icon" type="image/jpeg" href="fotos/logo.jpeg">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <img src="fotos/logo.jpeg" alt="Actuana Logo" class="header-logo">
+                    <h1>🌾 Agro Floppy</h1>
+                </div>
+                <div class="header-actions">
+                    <span class="username">👤 <span id="usernameDisplay">Demo</span></span>
+                    <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-label">Conexión MQTT:</span>
+                <span id="mqttStatus" class="status-value status-disconnected">🔴 Desconectado</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Última actualización:</span>
+                <span id="lastUpdate" class="status-value">—</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dashboard-content">
+            <!-- Sensores Grid -->
+            <div class="sensors-grid">
+                <!-- Humedad del Suelo -->
+                <div class="sensor-card">
+                    <div class="sensor-header">
+                        <h3>💧 Humedad del Suelo</h3>
+                    </div>
+                    <div class="sensor-value" id="soilHumidity">—</div>
+                    <div class="sensor-unit">%</div>
+                    <div class="sensor-chart">
+                        <div class="progress-bar">
+                            <div id="soilProgress" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Temperatura -->
+                <div class="sensor-card">
+                    <div class="sensor-header">
+                        <h3>🌡️ Temperatura</h3>
+                    </div>
+                    <div class="sensor-value" id="temperature">—</div>
+                    <div class="sensor-unit">°C</div>
+                    <div class="sensor-chart">
+                        <div class="progress-bar">
+                            <div id="tempProgress" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #ef4444, #f59e0b);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Humedad Ambiental -->
+                <div class="sensor-card">
+                    <div class="sensor-header">
+                        <h3>💨 Humedad Ambiental</h3>
+                    </div>
+                    <div class="sensor-value" id="humidity">—</div>
+                    <div class="sensor-unit">%</div>
+                    <div class="sensor-chart">
+                        <div class="progress-bar">
+                            <div id="humProgress" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nivel de Agua -->
+                <div class="sensor-card">
+                    <div class="sensor-header">
+                        <h3>📏 Nivel de Agua</h3>
+                    </div>
+                    <div class="sensor-value" id="waterLevel">—</div>
+                    <div class="sensor-unit">cm</div>
+                    <div class="sensor-chart">
+                        <div class="progress-bar">
+                            <div id="waterProgress" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Section -->
+            <div class="controls-section">
+                <h2>🎮 Controles</h2>
+                
+                <!-- Estado de la Bomba -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <h3>Estado de la Bomba</h3>
+                        <span id="bombaEstado" class="badge badge-off">OFF</span>
+                    </div>
+                    <div class="control-body">
+                        <div class="switch-group">
+                            <button id="btnBombaOn" class="btn-control btn-success">
+                                ▶️ Encender Bomba
+                            </button>
+                            <button id="btnBombaOff" class="btn-control btn-danger">
+                                ⏸️ Apagar Bomba
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modo de Operación -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <h3>Modo de Operación</h3>
+                        <span id="modoEstado" class="badge badge-auto">AUTO</span>
+                    </div>
+                    <div class="control-body">
+                        <div class="switch-group">
+                            <button id="btnModoAuto" class="btn-control btn-primary">
+                                ⚙️ Modo Automático
+                            </button>
+                            <button id="btnModoManual" class="btn-control btn-secondary">
+                                🎮 Modo Manual
+                            </button>
+                        </div>
+                        <p class="control-hint">
+                            <strong>Auto:</strong> La bomba se controla automáticamente según humedad.<br>
+                            <strong>Manual:</strong> Control manual de la bomba.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Logs -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <h3>📜 Registro de Eventos</h3>
+                        <button id="btnClearLogs" class="btn-small">Limpiar</button>
+                    </div>
+                    <div class="logs-container" id="logsContainer">
+                        <div class="log-entry">Esperando conexión MQTT...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
