@@ -29,19 +29,19 @@ El backend de Floppy se encarga de:
 
 ## 🛠️ Tecnologías utilizadas
 
-Ejemplo de stack (modifica según tu proyecto real):
+Ejemplo de stack 
 
 - **Node.js 18+**
-- **Express** (u otro framework HTTP)
+- **Express** 
 - Base de datos: **PostgreSQL / MySQL / MongoDB**
 - ORM/ODM: **Prisma**, **TypeORM**, **Mongoose**, etc.
 - Autenticación: **JWT**
-- Mensajería IoT (opcional): **MQTT (Mosquitto)** o HTTP
+- Mensajería IoT  **MQTT (Mosquitto)** o HTTP
 - Contenedores: **Docker / Docker Compose** (opcional)
 
 ---
 
-## 📂 Estructura del proyecto (ejemplo)
+## 📂 Estructura del proyecto 
 
 ```bash
 floppy-backend/
