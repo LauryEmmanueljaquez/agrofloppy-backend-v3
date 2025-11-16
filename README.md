@@ -23,13 +23,13 @@ El backend de Floppy se encarga de:
 - Motor básico de reglas (umbrales, tiempos, estados de alarma).
 - Gestión de autenticación y permisos (operadores, administradores, etc).
 
-*(Ajusta este bloque según tu implementación real.)*
+
 
 ---
 
 ## 🛠️ Tecnologías utilizadas
 
-Ejemplo de stack 
+
 
 - **Node.js 18+**
 - **Express** 
